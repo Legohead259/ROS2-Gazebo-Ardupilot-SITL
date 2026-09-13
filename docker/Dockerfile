@@ -162,9 +162,6 @@ RUN apt-get update \
     gstreamer1.0-gl \
   && rm -rf /var/lib/apt/lists/*
 
-# Disable IPv6 for PIP improvements (https://stackoverflow.com/questions/35144103/sometimes-pip-install-is-very-slow)
-RUN sysctl net.ipv6.conf.all.disable_ipv6=1
-
 # Switch back to User
 USER ${USERNAME}
 ENV USER=${USERNAME}
