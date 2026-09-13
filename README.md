@@ -1,6 +1,8 @@
-# ROS2-Gazeebo
+# ROS2-Gazeebo-Ardupilot-SITL
 
-> **ROS 2 + Gazebo in Docker with GUI, GPU support, and a persistent
+> **Gratefully copied from: https://github.com/umerghafoor/ROS2-Gazebo**
+
+> **ROS 2 + Gazebo + Ardupilot SITL in Docker with GUI, GPU support, and a persistent
 > workspace — no host setup required.**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
