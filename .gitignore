@@ -21,3 +21,9 @@ workspace/log/
 
 # Per-user ros2gz mount list
 .ros2gz.mounts
+
+# BlueBoat SITL (for now)
+resources/
+workspace/extras_interface/
+workspace/src/
+workspace/gazebo_exports.sh
