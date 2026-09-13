@@ -1,7 +1,7 @@
 services:
   ros2-gazebo:
-    image: ros2-gazebo:jazzy-harmonic
-    container_name: ros2-gazebo
+    image: ros2-gazebo-ardupilot-sitl:jazzy-harmonic
+    container_name: ros2-gazebo-ardupilot-sitl
     build:
       context: .
       dockerfile: docker/Dockerfile
@@ -11,7 +11,7 @@ services:
         UBUNTU_VERSION: "24.04"
         USER_UID: "${UID:-1000}"
         USER_GID: "${GID:-1000}"
-    hostname: ros2-gazebo
+    # hostname: ros2-gazebo-ardupilot-sitl
     stdin_open: true
     tty: true
     network_mode: host
