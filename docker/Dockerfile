@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 ARG UBUNTU_VERSION=24.04
-FROM ubuntu:${UBUNTU_VERSION}
+FROM ubuntu:${UBUNTU_VERSION} AS ros2-gazebo
 
 ARG ROS_DISTRO=jazzy
 ARG GZ_DISTRO=harmonic
@@ -125,3 +125,77 @@ USER ${USERNAME}
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["bash"]
+
+# ====================================================================
+
+FROM ros2-gazebo as ros2-gazebo-ardupilot
+
+# Set environmental variables for the container
+
+
+# Switch user back to root
+USER root
+
+# Install Intel Graphics Drivers
+RUN wget -qO - https://repositories.intel.com/graphics/intel-graphics.key | gpg --dearmor --output /usr/share/keyrings/intel-graphics.gpg
+RUN echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/intel-graphics.gpg] https://repositories.intel.com/graphics/ubuntu jammy arc' > /etc/apt/sources.list.d/intel.gpu.jammy.list
+RUN apt-get update
+RUN apt-get install -y \
+    intel-opencl-icd \
+    intel-level-zero-gpu \
+    level-zero \
+    intel-media-va-driver-non-free \
+    clinfo
+
+# Install ardupilot and ardupilot_gazebo prereqs
+RUN apt-get update \
+ && apt-get -y --quiet --no-install-recommends install \
+    python3-wxgtk4.0 \
+    rapidjson-dev \
+    xterm \
+    libgz-sim8-dev \
+    libopencv-dev \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    gstreamer1.0-plugins-bad  \
+    gstreamer1.0-libav \
+    gstreamer1.0-gl \
+  && rm -rf /var/lib/apt/lists/*
+
+# Disable IPv6 for PIP improvements (https://stackoverflow.com/questions/35144103/sometimes-pip-install-is-very-slow)
+RUN sysctl net.ipv6.conf.all.disable_ipv6=1
+
+# Switch back to User
+USER ${USERNAME}
+ENV USER=${USERNAME}
+ENV GZ_VERSION=${GZ_DISTRO}
+
+# Clone ArduSub code
+WORKDIR /home/$USERNAME
+RUN git clone https://github.com/ArduPilot/ardupilot.git --recurse-submodules
+WORKDIR /home/$USERNAME/ardupilot
+
+# Install ArduSub prereqs (this also appends to .bashrc)
+WORKDIR /home/$USERNAME/ardupilot
+ENV SKIP_AP_EXT_ENV=1 SKIP_AP_GRAPHIC_ENV=1 SKIP_AP_COV_ENV=1 SKIP_AP_GIT_CHECK=1
+RUN Tools/environment_install/install-prereqs-ubuntu.sh -y
+
+# Build ArduSub
+WORKDIR /home/$USERNAME/ardupilot
+RUN modules/waf/waf-light configure --board sitl \
+  && modules/waf/waf-light build --target bin/ardusub
+
+# Clone ardupilot_gazebo code
+WORKDIR /home/$USERNAME
+RUN git clone https://github.com/ArduPilot/ardupilot_gazebo.git
+
+# Build ardupilot_gazebo
+RUN [ "/bin/bash" , "-c" , " \
+  cd ardupilot_gazebo \
+  && mkdir build \
+  && cd build \
+  && cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  && make -j4" ]
+
+RUN echo "export GZ_SIM_SYSTEM_PLUGIN_PATH=/home/ros/ardupilot_gazebo/build:$GZ_SIM_SYSTEM_PLUGIN_PATH" >> /home/${USERNAME}/.bashrc
+RUN echo "export GZ_SIM_RESOURCE_PATH=$HOME/ardupilot_gazebo/models:$HOME/ardupilot_gazebo/worlds:$GZ_SIM_RESOURCE_PATH" >> /home/${USERNAME}/.bashrc
