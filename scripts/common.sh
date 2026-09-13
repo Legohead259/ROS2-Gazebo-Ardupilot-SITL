@@ -7,9 +7,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-IMAGE_NAME="${IMAGE_NAME:-ros2-gazebo}"
+IMAGE_NAME="${IMAGE_NAME:-ros2-gazebo-ardupilot-sitl}"
 IMAGE_TAG="${IMAGE_TAG:-jazzy-harmonic}"
-CONTAINER_NAME="${CONTAINER_NAME:-ros2-gazebo}"
+CONTAINER_NAME="${CONTAINER_NAME:-ros2-gazebo-ardupilot-sitl}"
 # Remote (Docker Hub) image. `./ros2gz pull` fetches this and re-tags it
 # locally as ${IMAGE_NAME}:${IMAGE_TAG} so the rest of the scripts find it.
 REMOTE_IMAGE="${REMOTE_IMAGE:-umerghafoor/ros2-gazebo:jazzy-harmonic}"
